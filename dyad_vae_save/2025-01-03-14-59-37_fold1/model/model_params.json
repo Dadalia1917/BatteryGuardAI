@@ -1,0 +1,79 @@
+{
+    "train_time_start": "./dyad_vae_save/2025-01-03-14-59-37_fold1",
+    "train_time_end": "2025-01-03-15-03-21",
+    "args": {
+        "project": "project",
+        "task": "batterybranda",
+        "epochs": 3,
+        "jobs": 32,
+        "batch_size": 128,
+        "learning_rate": 0.005,
+        "cosine_factor": 0.1,
+        "rnn_type": "gru",
+        "model_type": "rnn",
+        "kernel_size": 3,
+        "nhead": 2,
+        "dim_feedforward": 2048,
+        "hidden_size": 128,
+        "num_layers": 2,
+        "bidirectional": true,
+        "smoothing": false,
+        "latent_size": 8,
+        "noise_scale": 1,
+        "anneal_function": "linear",
+        "k": 0.0025,
+        "x0": 500,
+        "anneal0": 0.01,
+        "variable_length": false,
+        "min_length": 30,
+        "nll_weight": 10,
+        "latent_label_weight": 0.001,
+        "save_model_path": "./dyad_vae_save",
+        "granularity_all": 1000,
+        "num_granularity_all": 100,
+        "granularity_car": 1000,
+        "num_granularity_car": 200,
+        "use_flag": "rec_error",
+        "test_path": "../data/battery_brand1/test",
+        "train_path": "../data/battery_brand1/train",
+        "evaluation_path": "../data/battery_brand1/label",
+        "config_path": "model_params_battery_brand1.json",
+        "fold_num": 1,
+        "loss_picture_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1/loss",
+        "feature_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1/feature",
+        "result_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1/result",
+        "save_feature_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1/mean",
+        "current_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1",
+        "current_model_path": "./dyad_vae_save/2025-01-03-14-59-37_fold1/model",
+        "columns": [
+            "volt",
+            "current",
+            "soc",
+            "max_single_volt",
+            "min_single_volt",
+            "max_temp",
+            "min_temp",
+            "timestamp"
+        ]
+    },
+    "loss": {
+        "1": {
+            "mean_loss": 0.3734419204705148,
+            "nll_loss": 0.02886820246709607,
+            "label_loss": 0.2221546534206314,
+            "kl_loss": 10.66771566987511
+        },
+        "2": {
+            "mean_loss": 0.18760875988384718,
+            "nll_loss": 0.011970121739198996,
+            "label_loss": 0.21916337307287576,
+            "kl_loss": 6.76883813216725
+        },
+        "3": {
+            "mean_loss": 0.15504977481194052,
+            "nll_loss": 0.009215805918531795,
+            "label_loss": 0.21886420295214612,
+            "kl_loss": 6.267285301949442
+        }
+    }
+}
