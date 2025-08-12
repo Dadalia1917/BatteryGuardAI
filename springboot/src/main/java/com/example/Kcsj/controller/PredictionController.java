@@ -1,5 +1,6 @@
 package com.example.Kcsj.controller;
-import com.alibaba.fastjson.JSONObject;
+
+import com.alibaba.fastjson2.JSONObject;
 import com.example.Kcsj.common.Result;
 import com.example.Kcsj.entity.TimepointRecords;
 import com.example.Kcsj.entity.TimeperiodRecords;
@@ -8,31 +9,25 @@ import com.example.Kcsj.mapper.TimeperiodRecordsMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.util.LinkedMultiValueMap;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.File;
 import java.util.Date;
 
 @RestController
 @RequestMapping("/flask")
 public class PredictionController {
-    @javax.annotation.Resource
+    @Resource
     TimepointRecordsMapper timepointRecordsMapper;
     
-    @javax.annotation.Resource
+    @Resource
     TimeperiodRecordsMapper timeperiodRecordsMapper;
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -118,16 +113,7 @@ public class PredictionController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             
-            // 创建新的请求对象，确保数据格式正确
-            PredictRequest modifiedRequest = new PredictRequest();
-            modifiedRequest.setUsername(request.getUsername());
-            modifiedRequest.setStartTime(request.getStartTime());
-            modifiedRequest.setConf(request.getConf());
-            modifiedRequest.setAi(request.getAi());
-            modifiedRequest.setThinkMode(request.getThinkMode());
-            modifiedRequest.setBatteryData(request.getBatteryData());
-            
-            HttpEntity<PredictRequest> requestEntity = new HttpEntity<>(modifiedRequest, headers);
+            HttpEntity<PredictRequest> requestEntity = new HttpEntity<>(request, headers);
 
             // 调用 Flask API
             String response = restTemplate.postForObject("http://localhost:5000/predictTimePoint", requestEntity, String.class);
@@ -169,16 +155,7 @@ public class PredictionController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             
-            // 创建新的请求对象，确保数据格式正确
-            PredictRequest modifiedRequest = new PredictRequest();
-            modifiedRequest.setUsername(request.getUsername());
-            modifiedRequest.setStartTime(request.getStartTime());
-            modifiedRequest.setConf(request.getConf());
-            modifiedRequest.setAi(request.getAi());
-            modifiedRequest.setThinkMode(request.getThinkMode());
-            modifiedRequest.setBatteryData(request.getBatteryData());
-            
-            HttpEntity<PredictRequest> requestEntity = new HttpEntity<>(modifiedRequest, headers);
+            HttpEntity<PredictRequest> requestEntity = new HttpEntity<>(request, headers);
 
             // 调用 Flask API
             String response = restTemplate.postForObject("http://localhost:5000/predictTimePoint", requestEntity, String.class);
@@ -199,39 +176,16 @@ public class PredictionController {
                 timepointRecords.setAllTime(String.valueOf(responses.get("allTime")));
                 timepointRecords.setSuggestion(String.valueOf(responses.get("suggestion")));
                 
-                // 输出完整记录对象以便调试
-                System.out.println("准备插入的完整TimepointRecords对象: " + timepointRecords);
-                
-                // 尝试保存到数据库
+                // 保存到数据库
                 try {
-                    System.out.println("准备保存时间点检测记录到数据库");
                     int result = timepointRecordsMapper.insert(timepointRecords);
                     System.out.println("保存时间点检测记录结果: " + result);
-                    
-                    // 验证记录是否保存成功
-                    QueryWrapper<TimepointRecords> wrapper = new QueryWrapper<>();
-                    wrapper.eq("username", request.getUsername())
-                           .eq("start_time", request.getStartTime())
-                           .orderByDesc("id");
-                    wrapper.last("LIMIT 1");
-                    TimepointRecords savedRecord = timepointRecordsMapper.selectOne(wrapper);
-                    System.out.println("数据库中查询到的记录ID: " + (savedRecord != null ? savedRecord.getId() : "null"));
-                    
-                    if (savedRecord == null) {
-                        System.err.println("警告：无法在数据库中找到刚插入的记录");
-                    } else {
-                        System.out.println("记录保存成功，ID: " + savedRecord.getId());
-                        // 将新记录的ID添加到响应中
-                        responses.put("record_id", savedRecord.getId());
-                    }
                 } catch (Exception e) {
                     System.err.println("保存时间点检测记录失败: " + e.getMessage());
                     e.printStackTrace();
-                    // 记录失败但不影响返回结果
                 }
                 
-                // 直接返回Flask响应对象，避免数据格式转换问题
-                return Result.success(responses);
+                return Result.success(response);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -303,29 +257,16 @@ public class PredictionController {
                 record.setSuggestion(String.valueOf(responseObj.get("suggestion")));
                 record.setModel("all"); // 使用通用模型
                 
-                // 打印记录信息用于调试
-                System.out.println("即将保存的时间段检测记录: " + record);
-                
                 // 尝试保存到数据库
                 try {
                     int result = timeperiodRecordsMapper.insert(record);
                     System.out.println("保存时间段检测记录结果: " + result);
-                    
-                    // 验证记录是否保存成功
-                    QueryWrapper<TimeperiodRecords> wrapper = new QueryWrapper<>();
-                    wrapper.eq("username", username)
-                           .eq("start_time", startTime)
-                           .orderByDesc("id");
-                    wrapper.last("LIMIT 1");
-                    TimeperiodRecords savedRecord = timeperiodRecordsMapper.selectOne(wrapper);
-                    System.out.println("数据库中查询到的记录: " + savedRecord);
                 } catch (Exception e) {
                     System.err.println("保存时间段检测记录失败: " + e.getMessage());
                     e.printStackTrace();
                 }
                 
-                // 直接返回Flask响应对象，避免数据格式转换问题
-                return Result.success(responseObj);
+                return Result.success(response);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -337,14 +278,15 @@ public class PredictionController {
     public Result<?> getPredictions() {
         try {
             // 获取最新的10条时间点检测记录
-            return Result.success(timepointRecordsMapper.findLatest10());
+            return Result.success(timepointRecordsMapper.selectList(
+                new QueryWrapper<TimepointRecords>().orderByDesc("id").last("LIMIT 10")
+            ));
         } catch (Exception e) {
             return Result.error("-1", "Error: " + e.getMessage());
         }
     }
     
-    @RequestMapping("/")
-    @GetMapping("")
+    @GetMapping("/")
     public Result<?> index() {
         try {
             return Result.success("电池故障检测系统API");

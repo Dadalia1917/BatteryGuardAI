@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -13,7 +15,9 @@ import java.io.Serializable;
  * 时间段检测记录
  */
 @Data
-@ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @TableName("timeperiodrecords")
 public class TimeperiodRecords implements Serializable {
 
@@ -75,4 +79,93 @@ public class TimeperiodRecords implements Serializable {
      * AI建议
      */
     private String suggestion;
-} 
+
+    // 手动添加 getter/setter 方法确保兼容性
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getInputFile() {
+        return inputFile;
+    }
+
+    public void setInputFile(String inputFile) {
+        this.inputFile = inputFile;
+    }
+
+    public String getResultFile() {
+        return resultFile;
+    }
+
+    public void setResultFile(String resultFile) {
+        this.resultFile = resultFile;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getAvgScore() {
+        return avgScore;
+    }
+
+    public void setAvgScore(String avgScore) {
+        this.avgScore = avgScore;
+    }
+
+    public String getMaxScore() {
+        return maxScore;
+    }
+
+    public void setMaxScore(String maxScore) {
+        this.maxScore = maxScore;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getIsFault() {
+        return isFault;
+    }
+
+    public void setIsFault(String isFault) {
+        this.isFault = isFault;
+    }
+
+    public String getAi() {
+        return ai;
+    }
+
+    public void setAi(String ai) {
+        this.ai = ai;
+    }
+
+    public String getSuggestion() {
+        return suggestion;
+    }
+
+    public void setSuggestion(String suggestion) {
+        this.suggestion = suggestion;
+    }
+}

@@ -7,7 +7,7 @@ import com.example.Kcsj.entity.TimepointRecords;
 import com.example.Kcsj.mapper.TimepointRecordsMapper;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
@@ -85,7 +85,7 @@ public class TimepointRecordsController {
         try {
             // 检查数据库连接
             System.out.println("数据库连接：尝试检查数据库表是否存在");
-            Integer count = timepointRecordsMapper.selectCount(null);
+            Long count = timepointRecordsMapper.selectCount(null);
             System.out.println("数据库表中总记录数: " + count);
         
         // 构建查询条件
