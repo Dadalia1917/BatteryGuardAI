@@ -2,7 +2,476 @@
 
 本项目是一个基于动态深度学习与大模型反馈的电池故障检测系统，能够实时检测电池运行状态，预测潜在故障，并提供智能分析与建议。系统集成了前端展示、后端处理和深度学习模型，为电池健康管理提供全面解决方案。
 
-## 系统架构
+## 🏗️ 系统架构
+
+### 📋 架构概览
+
+```mermaid
+graph TD
+    %% 前端层
+    subgraph Frontend["🖥️ 前端层 (Vue.js)"]
+        direction TB
+        UI[用户界面]
+        DashboardPage[数据仪表板]
+        DetectionPage[异常检测页面]
+        AnalysisPage[故障分析页面]
+        UserPage[用户管理页面]
+        
+        UI --- DashboardPage
+        UI --- DetectionPage
+        UI --- AnalysisPage
+        UI --- UserPage
+    end
+
+    %% 业务逻辑层
+    subgraph Backend["⚙️ 业务逻辑层 (Spring Boot)"]
+        direction TB
+        subgraph Controllers["控制器层"]
+            DetectionController[检测控制器]
+            UserController[用户控制器] 
+            DataController[数据控制器]
+            AnalysisController[分析控制器]
+        end
+        
+        subgraph Services["服务层"]
+            DetectionService[检测服务]
+            UserService[用户服务]
+            DataService[数据服务]
+            ReportService[报告服务]
+        end
+        
+        subgraph Mappers["数据访问层"]
+            UserMapper[用户映射器]
+            DetectionMapper[检测记录映射器]
+            DataMapper[数据映射器]
+        end
+        
+        Controllers --- Services
+        Services --- Mappers
+    end
+
+    %% AI推理层
+    subgraph AILayer["🤖 AI推理层 (Flask)"]
+        direction TB
+        FlaskApp[Flask应用]
+        
+        subgraph ModelEngine["模型引擎"]
+            DynamicVAE[动态VAE模型]
+            AnomalyDetector[异常检测器]
+            FeatureExtractor[特征提取器]
+        end
+        
+        subgraph AIAssistant["AI助手服务"]
+            ChatAPI[ChatAPI]
+            DeepSeek[DeepSeek API]
+            Qwen[Qwen API]
+            LocalModels[本地模型服务]
+        end
+        
+        FlaskApp --- ModelEngine
+        FlaskApp --- AIAssistant
+    end
+
+    %% 数据存储层
+    subgraph Storage["💾 数据存储层"]
+        direction LR
+        MySQL[(MySQL数据库)]
+        FileStorage[(文件存储)]
+        
+        subgraph Tables["数据表"]
+            UserTable[用户表]
+            DetectionTable[检测记录表]
+            ModelTable[模型参数表]
+            AnomalyTable[异常记录表]
+        end
+        
+        MySQL --- Tables
+    end
+
+    %% 外部服务
+    subgraph External["🌐 外部服务"]
+        direction TB
+        OnlineAI[在线AI服务]
+        LMStudio[本地LM-Studio]
+        LANAI[局域网AI服务]
+        DataSource[电池数据源]
+    end
+
+    %% 连接关系
+    Frontend -.-> Backend
+    Backend -.-> AILayer
+    Backend -.-> Storage
+    AILayer -.-> External
+    AILayer -.-> Storage
+    
+    %% 样式
+    classDef frontendStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef backendStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef aiStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef storageStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef externalStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    
+    class Frontend,UI,DashboardPage,DetectionPage,AnalysisPage,UserPage frontendStyle
+    class Backend,Controllers,Services,Mappers,DetectionController,UserController,DataController,AnalysisController,DetectionService,UserService,DataService,ReportService,UserMapper,DetectionMapper,DataMapper backendStyle
+    class AILayer,FlaskApp,ModelEngine,AIAssistant,DynamicVAE,AnomalyDetector,FeatureExtractor,ChatAPI,DeepSeek,Qwen,LocalModels aiStyle
+    class Storage,MySQL,FileStorage,Tables,UserTable,DetectionTable,ModelTable,AnomalyTable storageStyle
+    class External,OnlineAI,LMStudio,LANAI,DataSource externalStyle
+```
+
+---
+
+## 🗄️ 数据模型设计
+
+### 📊 实体关系图
+
+```mermaid
+classDiagram
+    %% 实体类
+    class User {
+        +Integer id
+        +String username
+        +String password
+        +String name
+        +String email
+        +String role
+        +Date createTime
+    }
+    
+    class BatteryData {
+        +Integer id
+        +String batteryId
+        +Double voltage
+        +Double current
+        +Double temperature
+        +Double capacity
+        +DateTime timestamp
+        +String dataSource
+    }
+    
+    class DetectionRecord {
+        +Integer id
+        +String recordId
+        +String batteryId
+        +String detectionType
+        +Double anomalyScore
+        +String anomalyLevel
+        +String features
+        +String username
+        +DateTime startTime
+        +String aiModel
+        +String suggestion
+    }
+    
+    class ModelConfig {
+        +Integer id
+        +String modelName
+        +String modelPath
+        +String parameters
+        +String version
+        +DateTime createTime
+        +Boolean isActive
+    }
+    
+    %% 控制器类
+    class DetectionController {
+        -DetectionService detectionService
+        +detectAnomaly() Result
+        +getDetectionHistory() Result
+        +exportReport() Result
+    }
+    
+    class DataController {
+        -DataService dataService
+        +uploadData() Result
+        +getBatteryData() Result
+        +getStatistics() Result
+    }
+    
+    %% 服务类
+    class FlaskAIService {
+        -DynamicVAE model
+        -ChatAPI chatAPI
+        +detectAnomaly() Dict
+        +trainModel() Boolean
+        +generateSuggestion() String
+        +extractFeatures() Array
+    }
+    
+    class DynamicVAE {
+        -String modelPath
+        -Dict parameters
+        +encode() Tensor
+        +decode() Tensor
+        +calculateAnomalyScore() Double
+        +train() Boolean
+    }
+    
+    class ChatAPI {
+        -String apiKey
+        -String modelName
+        +generateAnalysis() String
+        +getSuggestions() String
+        +thinkModeRequest() String
+    }
+    
+    %% 关系定义
+    User "1" --> "*" DetectionRecord : creates
+    BatteryData "1" --> "*" DetectionRecord : analyzed_by
+    ModelConfig "1" --> "*" DetectionRecord : used_by
+    
+    DetectionController --> FlaskAIService : calls
+    DataController --> BatteryData : manages
+    
+    FlaskAIService --> DynamicVAE : uses
+    FlaskAIService --> ChatAPI : uses
+    
+    DynamicVAE --> BatteryData : processes
+```
+
+---
+
+## 🔄 系统流程设计
+
+### ⏱️ 异常检测流程时序图
+
+```mermaid
+sequenceDiagram
+    participant U as 🧑‍🔬 用户
+    participant V as 💻 Vue前端
+    participant S as ⚙️ Spring Boot
+    participant F as 🤖 Flask AI服务
+    participant M as 🧠 动态VAE模型
+    participant A as 🤖 AI助手
+    participant D as 💾 数据库
+    
+    %% 数据上传阶段
+    Note over U,D: 📤 数据上传阶段
+    U->>V: 1. 上传电池数据
+    V->>S: 2. POST /api/data/upload
+    S->>D: 3. 保存原始数据
+    D-->>S: 4. 确认保存成功
+    
+    %% 异常检测阶段
+    Note over U,A: 🔍 异常检测阶段
+    U->>V: 5. 启动异常检测
+    V->>S: 6. POST /api/detection/analyze
+    S->>F: 7. 转发检测请求
+    
+    F->>M: 8. 加载动态VAE模型
+    M->>M: 9. 特征提取
+    M->>M: 10. 异常分数计算
+    M-->>F: 11. 返回检测结果
+    
+    %% AI分析阶段
+    Note over F,A: 🧠 AI分析阶段
+    alt 用户选择AI分析
+        F->>A: 12. 发送检测结果
+        A->>A: 13. 生成故障分析
+        A-->>F: 14. 返回分析建议
+    end
+    
+    %% 结果保存阶段
+    Note over S,D: 💾 结果保存阶段
+    F-->>S: 15. 返回完整结果
+    S->>D: 16. 保存检测记录
+    D-->>S: 17. 确认保存成功
+    
+    %% 结果展示阶段
+    Note over U,V: 📊 结果展示阶段
+    S-->>V: 18. 返回检测结果
+    V-->>U: 19. 展示异常分析
+    V-->>U: 20. 显示AI建议
+    
+    %% 报告生成阶段
+    Note over U,V: 📄 报告生成(可选)
+    U->>V: 21. 生成分析报告
+    V-->>U: 22. 下载PDF报告
+```
+
+### 📊 数据流图
+
+```mermaid
+graph LR
+    %% 输入层
+    subgraph Input["📥 数据输入层"]
+        direction TB
+        A[🔋 电池数据上传]
+        B[⚙️ 模型参数配置]
+        C[🎯 检测类型选择]
+        D[🤖 AI模型选择]
+        E[🧠 思考模式开关]
+    end
+    
+    %% 处理层
+    subgraph Process["⚡ 数据处理层"]
+        direction TB
+        F[🔄 数据预处理]
+        G[🧠 特征提取]
+        H[📊 异常检测]
+        I[💡 AI建议生成]
+        J[📈 结果可视化]
+    end
+    
+    %% 存储层
+    subgraph Storage["💾 数据存储层"]
+        direction TB
+        K[🔋 原始数据存储]
+        L[📊 特征数据存储]
+        M[📋 检测记录存储]
+        N[🤖 模型参数存储]
+    end
+    
+    %% 输出层
+    subgraph Output["📤 结果输出层"]
+        direction TB
+        O[📊 异常分数]
+        P[⚠️ 异常等级]
+        Q[📈 可视化图表]
+        R[💡 AI分析建议]
+        S[📄 检测报告]
+    end
+    
+    %% 数据流连接
+    A --> F
+    B --> G
+    C --> H
+    D --> I
+    E --> I
+    
+    F --> G
+    G --> H
+    H --> J
+    G --> I
+    
+    A --> K
+    G --> L
+    H --> M
+    B --> N
+    
+    H --> O
+    H --> P
+    J --> Q
+    I --> R
+    O --> S
+    P --> S
+    Q --> S
+    R --> S
+    
+    %% 样式定义
+    classDef inputStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef processStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef storageStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef outputStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    
+    class A,B,C,D,E inputStyle
+    class F,G,H,I,J processStyle
+    class K,L,M,N storageStyle
+    class O,P,Q,R,S outputStyle
+```
+
+---
+
+## 🚀 部署架构
+
+### 🖥️ 部署架构图
+
+```mermaid
+graph TB
+    %% 客户端层
+    subgraph Client["👥 客户端层"]
+        direction LR
+        WebBrowser[🌐 Web浏览器]
+        MobileBrowser[📱 移动端浏览器]
+        DataCollector[📡 数据采集器]
+    end
+    
+    %% 负载均衡层
+    subgraph LoadBalancer["⚖️ 负载均衡层"]
+        Nginx[🔄 Nginx反向代理<br/>端口: 80/443]
+    end
+    
+    %% 应用服务层
+    subgraph AppServer["🖥️ 应用服务层"]
+        direction TB
+        
+        subgraph Frontend["🎨 前端服务"]
+            Vue[Vue.js应用<br/>📦 Node.js<br/>🔗 端口: 3000]
+        end
+        
+        subgraph Backend["⚙️ 后端服务"]
+            SpringBoot[Spring Boot应用<br/>☕ JDK 24<br/>🔗 端口: 9999]
+        end
+        
+        subgraph AIService["🤖 AI推理服务"]
+            Flask[Flask应用<br/>🐍 Python 3.8+<br/>🔗 端口: 5000]
+            DynamicVAE[🧠 动态VAE模型<br/>🔥 PyTorch/CUDA]
+        end
+    end
+    
+    %% AI模型服务层
+    subgraph ModelService["🧠 AI模型服务层"]
+        direction TB
+        
+        subgraph Local["💻 本地服务"]
+            LMStudio[🏠 LM-Studio<br/>🔗 端口: 1234]
+        end
+        
+        subgraph Cloud["☁️ 云端服务"]
+            DeepSeek[🌊 DeepSeek API<br/>🔑 API密钥认证]
+            Qwen[🔮 Qwen API<br/>🔑 API密钥认证]
+        end
+        
+        subgraph LAN["🏢 局域网服务"]
+            LANModels[🌐 局域网AI服务<br/>🔗 192.168.1.108:1234]
+        end
+    end
+    
+    %% 数据存储层
+    subgraph DataLayer["💾 数据存储层"]
+        direction LR
+        MySQL[🗄️ MySQL数据库<br/>🔗 端口: 3306<br/>📊 用户/检测数据]
+        FileStorage[📁 文件存储系统<br/>📋 模型文件/数据文件]
+        ModelStorage[🧠 模型存储<br/>💾 VAE模型参数]
+    end
+    
+    %% 外部数据源
+    subgraph DataSource["📡 外部数据源"]
+        BatterySystem[🔋 电池管理系统<br/>⚡ 实时数据接口]
+        IoTSensors[📊 IoT传感器<br/>🌡️ 温度/电压监控]
+        HistoricalDB[📚 历史数据库<br/>📈 历史运行数据]
+    end
+    
+    %% 连接关系
+    Client -.->|HTTPS/HTTP| LoadBalancer
+    LoadBalancer -.->|反向代理| Frontend
+    LoadBalancer -.->|API转发| Backend
+    
+    Frontend -.->|REST API| Backend
+    Backend -.->|HTTP调用| AIService
+    Backend -.->|JDBC| DataLayer
+    
+    AIService -.->|HTTP请求| ModelService
+    AIService -.->|文件操作| DataLayer
+    
+    Backend -.->|数据采集| DataSource
+    
+    %% 样式定义
+    classDef clientStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef proxyStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef appStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef modelStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef dataStyle fill:#fff8e1,stroke:#f9a825,stroke-width:2px
+    classDef sourceStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    
+    class WebBrowser,MobileBrowser,DataCollector clientStyle
+    class Nginx proxyStyle
+    class Vue,SpringBoot,Flask,DynamicVAE appStyle
+    class LMStudio,DeepSeek,Qwen,LANModels modelStyle
+    class MySQL,FileStorage,ModelStorage dataStyle
+    class BatterySystem,IoTSensors,HistoricalDB sourceStyle
+```
+
+---
 
 本系统采用前后端分离架构，包含三个主要组件：
 
